@@ -60,6 +60,11 @@ func main() {
 		{16, "Bayer Leverkusen", 0, 0, 0, 0, 0, 0},
 	}
 
+	fmt.Println("teams:")
+	for i, v := range teams {
+		fmt.Println(i+1, fmt.Sprintf("id: %d, name: %s", v.id, v.name))
+	}
+
 	divisionATeams, divisionBTeams := divideTeamsIntoDivisions(teams)
 
 	fmt.Println("\ndivision A teams:")
@@ -72,26 +77,41 @@ func main() {
 		fmt.Println(i+1, fmt.Sprintf("id: %d, name: %s", v.id, v.name))
 	}
 
-	matchesA := generateMatches(divisionATeams)
-	fmt.Println("\nscores of matches:")
+	matchesA := generateMatches(divisionATeams, 1)
+	fmt.Println("\ndivision A matches:")
 	for i, v := range matchesA {
 		fmt.Println(i+1, v.id, v.name(), v.score())
 	}
 
-	fmt.Println("\nteam points:")
-	for i, v := range divisionATeams {
-		fmt.Println(i+1, fmt.Sprintf("id %d, name %s, W %d, D %d, L %d, F %d, A %d, GD %d, P %d", v.id, v.name, v.wins, v.draws, v.loses, v.goalsScored, v.goalsConceded, v.diff(), v.points))
-	}
-	matchesB := generateMatches(divisionBTeams)
-	fmt.Println("\nscores of matches:")
+	matchesB := generateMatches(divisionBTeams, len(matchesA)+1)
+	fmt.Println("\ndivision B matches:")
 	for i, v := range matchesB {
 		fmt.Println(i+1, v.id, v.name(), v.score())
 	}
 
-	fmt.Println("\nteam points:")
+	generateMatchesScores(matchesA)
+	fmt.Println("\ndivision A scores of matches:")
+	for i, v := range matchesA {
+		fmt.Println(i+1, v.id, v.name(), v.score())
+	}
+
+	generateMatchesScores(matchesB)
+	fmt.Println("\ndivision B scores of matches:")
+	for i, v := range matchesB {
+		fmt.Println(i+1, v.id, v.name(), v.score())
+	}
+
+	fmt.Println("\ndivision A team points:")
+	for i, v := range divisionATeams {
+		fmt.Println(i+1, fmt.Sprintf("id %d, name %s, W %d, D %d, L %d, F %d, A %d, GD %d, P %d", v.id, v.name, v.wins, v.draws, v.loses, v.goalsScored, v.goalsConceded, v.diff(), v.points))
+	}
+
+	fmt.Println("\ndivision B team points:")
 	for i, v := range divisionBTeams {
 		fmt.Println(i+1, fmt.Sprintf("id %d, name %s, W %d, D %d, L %d, F %d, A %d, GD %d, P %d", v.id, v.name, v.wins, v.draws, v.loses, v.goalsScored, v.goalsConceded, v.diff(), v.points))
 	}
+
+	// assuming having ranking tables by db sorting
 
 	// 5 id 5, name Juventus, W 5, D 1, L 1, F 20, A 14, GD 6, P 16
 	// 6 id 4, name Milan, W 4, D 2, L 1, F 20, A 16, GD 4, P 14
@@ -113,116 +133,81 @@ func main() {
 }
 
 func divideTeamsIntoDivisions(teams []*Team) ([]*Team, []*Team) {
-	fmt.Println("teams:")
-	for i, v := range teams {
-		fmt.Println(i+1, fmt.Sprintf("id: %d, name: %s", v.id, v.name))
-	}
-
 	// rethink of getting randomly ordered from db???
 	r := rand.New(rand.NewSource(uint64(time.Now().UnixNano())))
 	r.Shuffle(len(teams), func(i, j int) { // shuffle teams(re-order with random indexes)
 		teams[i], teams[j] = teams[j], teams[i]
 	})
 
-	fmt.Println("\nre-ordered teams:")
+	fmt.Println("\nrandomly re-ordered teams:")
 	for i, v := range teams {
 		fmt.Println(i+1, fmt.Sprintf("id: %d, name: %s", v.id, v.name))
 	}
 
 	n := 8
-	divisionATeams := make([]*Team, 0)
-	divisionATeams = append(divisionATeams, teams[:n]...)
-	return divisionATeams, teams[n:]
+	return teams[:n], teams[n:] // capacity has no impact, the len of first division is 8 <=== len, cap : 8,16; 8,8
 }
 
-func generateMatches(teams []*Team) []*Match { // assume taking 8 teams
-	// var teams = []*Team{
-	// 	{1, "Liverpool", 0, 0, 0, 0, 0, 0},
-	// 	{2, "Arsenal", 0, 0, 0, 0, 0, 0},
-	// 	{3, "Aston Villa", 0, 0, 0, 0, 0, 0},
-	// 	{4, "Milan", 0, 0, 0, 0, 0, 0},
-	// 	{5, "Juventus", 0, 0, 0, 0, 0, 0},
-	// 	{6, "Barcelona", 0, 0, 0, 0, 0, 0},
-	// 	{7, "Bayern Munchen", 0, 0, 0, 0, 0, 0},
-	// 	{8, "Borussia Dortmund", 0, 0, 0, 0, 0, 0},
-	// }
-
-	// fmt.Println("teams:")
-	// for i, v := range teams {
-	// 	fmt.Println(i+1, fmt.Sprintf("id: %d, name: %s", v.id, v.name))
-	// }
-
-	matches := make([]*Match, 0)
+func generateMatches(teams []*Team, id int) []*Match {
+	matches := make([]*Match, 0) // generate matches each team plays each other once
 	m := make(map[string]bool)
 
-	id := 1
 	for i, v := range teams {
 		for j, v2 := range teams {
-			if i == j {
+			if i == j { // team itself
 				continue
 			}
 
-			key, keyReverse := fmt.Sprintf("%d_%d", i, j), fmt.Sprintf("%d_%d", j, i)
+			key, keyReverse := fmt.Sprintf("%d_%d", i, j), fmt.Sprintf("%d_%d", j, i) // key and reverse key to meet only play once condition
 			_, ok := m[key]
 			_, ok2 := m[keyReverse]
 
-			if !(ok || ok2) { // none exists
-				matches = append(matches, &Match{
-					id,
-					v,
-					v2,
-					0,
-					0,
-					-1,
-				})
-				m[key] = true
-				id++
+			if ok || ok2 { // match exists
+				continue
 			}
+
+			matches = append(matches, &Match{
+				id, // match id
+				v,  // team 1
+				v2, // team 2
+				0,  // team 1 score
+				0,  // team 2 score
+				-1, // winner id
+			})
+			m[key] = true // mark the key(team1_team2 or team2_team1 ids)
+			id++
+
 		}
 	}
 
-	// fmt.Println("\nmatches:")
-	// for i, v := range matches {
-	// 	fmt.Println(i+1, v.id, v.name())
-	// }
-	// 28 matches // correct
-
-	scheduledMatches := make([]*Match, 0)
+	scheduledMatches := make([]*Match, 0) // randomly schedule matches
 
 	rand.Seed(uint64(time.Now().Unix()))
-
 	loopIteration := 0
-	fmt.Println()
+
+	// regardless of infinite for loops the loop iteration is between 28(number of matches) - 50 + 28 * 30% => 28 - 60,65
 	for {
 		loopIteration++
-		if len(matches) == 0 {
-			break
+		if len(matches) == 0 { // all matches are picked and scheduled, there is no matches left
+			break // so exit loop
 		}
 
-		randomIndex := rand.Intn(len(matches))
+		randomIndex := rand.Intn(len(matches)) // pick random match
 		match := matches[randomIndex]
 
-		if loopIteration > 50 { // sometimes it is hard to schedule to have relaxing teams
-			// fmt.Println("re-schedule", len(matches))
-			// re-schedule matches, insert matches at some indexes
+		if loopIteration > 50 { // sometimes it is hard to schedule to have relaxing teams within short loop iteration
+			// re-schedule matches, insert matches at some indexes instead of picking randomly to match against the last,
+			// the scheduled order cannot satisfy this logic, so instead re-schedule at some point
 			for {
-				if len(matches) == 0 {
+				if len(matches) == 0 { // all left matches that could not fit the schedule by random picking are scheduled by re-scheduling,
+					// no matches left, so exit loop, and exit the upper loop, see below
 					break
 				}
-				v := matches[0]
+				v := matches[0] // pick first match from left matches
 
-				for j := 0; j < len(scheduledMatches)-1; j++ {
+				for j := 0; j < len(scheduledMatches)-1; j++ { // insert at specific index which meets condition of relaxing team
 
-					if j == 0 { // first
-						if scheduledMatches[j].firstTeam.id == v.firstTeam.id || scheduledMatches[j].firstTeam.id == v.secondTeam.id {
-							continue
-						}
-
-						if scheduledMatches[j].secondTeam.id == v.firstTeam.id || scheduledMatches[j].secondTeam.id == v.secondTeam.id {
-							continue
-						}
-					} else { // 1 ... n
-
+					if j > 0 { // first match has no previous match
 						if scheduledMatches[j-1].firstTeam.id == v.firstTeam.id || scheduledMatches[j-1].firstTeam.id == v.secondTeam.id {
 							continue
 						}
@@ -230,28 +215,29 @@ func generateMatches(teams []*Team) []*Match { // assume taking 8 teams
 						if scheduledMatches[j-1].secondTeam.id == v.firstTeam.id || scheduledMatches[j-1].secondTeam.id == v.secondTeam.id {
 							continue
 						}
-
-						if scheduledMatches[j].firstTeam.id == v.firstTeam.id || scheduledMatches[j].firstTeam.id == v.secondTeam.id {
-							continue
-						}
-
-						if scheduledMatches[j].secondTeam.id == v.firstTeam.id || scheduledMatches[j].secondTeam.id == v.secondTeam.id {
-							continue
-						}
 					}
 
-					matches = append(matches[:0], matches[1:]...)
-					scheduledMatches = append(scheduledMatches[:j+1], scheduledMatches[j:]...)
-					scheduledMatches[j] = v
-					break
+					// compare with given index to insert at that index
+					if scheduledMatches[j].firstTeam.id == v.firstTeam.id || scheduledMatches[j].firstTeam.id == v.secondTeam.id {
+						continue
+					}
+
+					if scheduledMatches[j].secondTeam.id == v.firstTeam.id || scheduledMatches[j].secondTeam.id == v.secondTeam.id {
+						continue
+					}
+
+					matches = append(matches[:0], matches[1:]...)                              // remove first element and append to appropriate index which meets the condition of relaxing
+					scheduledMatches = append(scheduledMatches[:j+1], scheduledMatches[j:]...) // move elements to the right by 1
+					scheduledMatches[j] = v                                                    // to append match at given index
+					break                                                                      // condition met, exit the loop, go to the next left match
 				}
 			}
 
-			break
+			break // and exit the upper loop, no matches left, all matches scheduled
 		}
 
 		n := len(scheduledMatches)
-		if n != 0 {
+		if n != 0 { // just append first element, and compare 1+ to previous match teams to have the condition of teams to be relaxing, not playing in a raw.
 
 			if scheduledMatches[n-1].firstTeam.id == match.firstTeam.id || scheduledMatches[n-1].firstTeam.id == match.secondTeam.id {
 				continue
@@ -261,33 +247,34 @@ func generateMatches(teams []*Team) []*Match { // assume taking 8 teams
 				continue
 			}
 		}
-		matches = append(matches[:randomIndex], matches[randomIndex+1:]...)
+
+		matches = append(matches[:randomIndex], matches[randomIndex+1:]...) // pick from matches and add to scheduled, that is done to pick matches one by one further from matches
 		scheduledMatches = append(scheduledMatches, match)
 	}
 
-	// fmt.Println("\nscheduled matches:")
-	// for i, v := range scheduledMatches {
-	// 	fmt.Println(i+1, v.id, v.name()) // , v.score()
-	// }
+	return scheduledMatches
+}
+
+func generateMatchesScores(matches []*Match) {
 
 	// generate scores of matches
 	maxGoals := 5 // assume max goals
 	rand.Seed((uint64(time.Now().UnixNano())))
-	for _, v := range scheduledMatches {
+	for _, v := range matches {
 		v.firstTeamScore = rand.Intn(maxGoals)
 		v.secondTeamScore = rand.Intn(maxGoals)
 
-		if v.firstTeamScore > v.secondTeamScore {
+		if v.firstTeamScore > v.secondTeamScore { // first team wins
 			v.winnerId = v.firstTeam.id
 			v.firstTeam.points += 3
 			v.firstTeam.wins++
 			v.secondTeam.loses++
-		} else if v.firstTeamScore < v.secondTeamScore {
+		} else if v.firstTeamScore < v.secondTeamScore { // second team wins
 			v.winnerId = v.secondTeam.id
 			v.secondTeam.points += 3
 			v.secondTeam.wins++
 			v.firstTeam.loses++
-		} else {
+		} else { // draw
 			v.firstTeam.points++
 			v.secondTeam.points++
 			v.secondTeam.draws++
@@ -301,17 +288,5 @@ func generateMatches(teams []*Team) []*Match { // assume taking 8 teams
 		v.secondTeam.goalsConceded += v.firstTeamScore
 	}
 
-	// fmt.Println("\nscores of matches:")
-	// for i, v := range scheduledMatches {
-	// 	fmt.Println(i+1, v.id, v.name(), v.score())
-	// }
-
-	// fmt.Println("\nteam points:")
-	// for i, v := range teams {
-	// 	fmt.Println(i+1, fmt.Sprintf("id %d, name %s, W %d, D %d, L %d, F %d, A %d, GD %d, P %d", v.id, v.name, v.wins, v.draws, v.loses, v.goalsScored, v.goalsConceded, v.diff(), v.points))
-	// }
-
 	// leave sorting algorithm to db, points, then diff, then if you have same teams look at the matches between???
-
-	return scheduledMatches
 }

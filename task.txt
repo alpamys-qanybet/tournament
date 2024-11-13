@@ -39,7 +39,7 @@ write the division logic
 8.
 
 + auto generate random matches each team plays each other.
-does match has to have a winner or draw is allowed. If winner is a must have then ok, if we are looking at draws then calculate scoring goals - income goals, if then there is conflict in ranking then calculate each other play matches.
+does match has to have a winner or draw is allowed. If winner is a must have then ok, if we are looking at draws then calculate scoring goals - income goals, if then there is conflict in ranking then calculate each other play matches or more scores.
 
 - The best 4 teams from each division meet in Play-off.
 
