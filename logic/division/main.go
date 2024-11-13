@@ -129,5 +129,86 @@ func generateMatches() { // assume taking 8 teams
 	}
 	// 28 matches // correct
 
-	// schedule matches
+	scheduledMatches := make([]*Match, 0)
+
+	rand.Seed(uint64(time.Now().Unix()))
+
+	loopIteration := 0
+	fmt.Println()
+	for {
+		loopIteration++
+		if len(matches) == 0 {
+			break
+		}
+
+		randomIndex := rand.Intn(len(matches))
+		match := matches[randomIndex]
+
+		if loopIteration > 50 { // sometimes it is hard to schedule to have relaxing teams
+			fmt.Println("re-schedule", len(matches))
+			// re-schedule matches, insert matches at some indexes
+			for {
+				if len(matches) == 0 {
+					break
+				}
+				v := matches[0]
+
+				for j := 0; j < len(scheduledMatches)-1; j++ {
+
+					if j == 0 { // first
+						if scheduledMatches[j].firstTeam.id == v.firstTeam.id || scheduledMatches[j].firstTeam.id == v.secondTeam.id {
+							continue
+						}
+
+						if scheduledMatches[j].secondTeam.id == v.firstTeam.id || scheduledMatches[j].secondTeam.id == v.secondTeam.id {
+							continue
+						}
+					} else { // 1 ... n
+
+						if scheduledMatches[j-1].firstTeam.id == v.firstTeam.id || scheduledMatches[j-1].firstTeam.id == v.secondTeam.id {
+							continue
+						}
+
+						if scheduledMatches[j-1].secondTeam.id == v.firstTeam.id || scheduledMatches[j-1].secondTeam.id == v.secondTeam.id {
+							continue
+						}
+
+						if scheduledMatches[j].firstTeam.id == v.firstTeam.id || scheduledMatches[j].firstTeam.id == v.secondTeam.id {
+							continue
+						}
+
+						if scheduledMatches[j].secondTeam.id == v.firstTeam.id || scheduledMatches[j].secondTeam.id == v.secondTeam.id {
+							continue
+						}
+					}
+
+					matches = append(matches[:0], matches[1:]...)
+					scheduledMatches = append(scheduledMatches[:j+1], scheduledMatches[j:]...)
+					scheduledMatches[j] = v
+					break
+				}
+			}
+
+			break
+		}
+
+		n := len(scheduledMatches)
+		if n != 0 {
+
+			if scheduledMatches[n-1].firstTeam.id == match.firstTeam.id || scheduledMatches[n-1].firstTeam.id == match.secondTeam.id {
+				continue
+			}
+
+			if scheduledMatches[n-1].secondTeam.id == match.firstTeam.id || scheduledMatches[n-1].secondTeam.id == match.secondTeam.id {
+				continue
+			}
+		}
+		matches = append(matches[:randomIndex], matches[randomIndex+1:]...)
+		scheduledMatches = append(scheduledMatches, match)
+	}
+
+	fmt.Println("\nscheduled matches:")
+	for i, v := range scheduledMatches {
+		fmt.Println(i+1, v.id, v.name())
+	}
 }
