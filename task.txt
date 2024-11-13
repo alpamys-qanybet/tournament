@@ -1,0 +1,73 @@
+- Develop software that can be used to manage tournament scoring - prepare and fill tournament schedule.
+
+- User can enter list of teams.
+
+- Together 16 teams are participating.
+
+- Teams by random are split in 2 divisions – A and B (8 teams in each).
+
+example: 
+
+Liverpool
+Arsenal
+Aston Villa
+Milan
+Juventus
+Barcelona
+Bayern Munchen
+Borussia Dortmund
+
+Manchester City
+Chelsea
+Manchester United
+Inter milan
+Atalanta
+Real Madrid
+Atletico Madrid
+Bayer Leverkusen
+
+- In each division teams play each against other.
+
+write the division logic
+1.
+2.
+3.
+4.
+5.
+6.
+7.
+8.
+
+auto generate random matches each team plays each other.
+does match has to have a winner or draw is allowed. If winner is a must have then ok, if we are looking at draws then calculate scoring goals - income goals, if then there is conflict in ranking then calculate each other play matches.
+
+- The best 4 teams from each division meet in Play-off.
+
+write the play-off logic
+
+1/8 -> 1/4 -> 1/2 -> final <=== static matches(results cannot be draw, match has to have a winner)
+
+- Play-off initial schedule is made by principle - best team plays against worst team.
+
+4 vs 4 => 1 vs 4, 2 vs 3, 3 vs 2, 4 vs 1 <=== maybe it will be static logic or with some random
+
+- The winning team stays to play further but the losing team is out of the game.
+
+out of game, ok.
+
+- Overall winning team is the one who wins all games in play-off.
+
+winner.
+
+- In order not to enter the tournament results by hand please use auto generation - by pressing a button generate Division A results, then Division B results, 
+then Playoff results.
+
+random basket generation of division and random results generation.
+
+- No rules for UI layout.
+
+ReactJS, bootstrap, esbuild, maybe nginx and separate service or inside some view.
+
+- Results must be saved in database, that could be erased to create a new tournament.
+
+separate page with buttons to clear database tables
