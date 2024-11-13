@@ -7,15 +7,32 @@ import (
 	"golang.org/x/exp/rand"
 )
 
+// division ids
+const (
+	_ = iota // 0
+	divisionAId
+	divisionBId
+)
+
+// match types
+const (
+	_ = iota // 0
+	matchTypeDivision
+	matchTypePlayoffQuarter4
+	matchTypePlayoffQuarter2
+	matchTypePlayoffFinal
+)
+
 type Team struct {
 	id            int
 	name          string
-	points        int
-	goalsScored   int
-	goalsConceded int
 	wins          int
 	draws         int
 	loses         int
+	goalsScored   int
+	goalsConceded int
+	points        int
+	divisioinId   int // 1 - A, 2 - B
 }
 
 func (t *Team) diff() int {
@@ -29,6 +46,7 @@ type Match struct {
 	firstTeamScore  int
 	secondTeamScore int
 	winnerId        int
+	matchType       int // 1 - division, 2  - playoff 1/4, 3 - playoff 1/2, 4 - playoff final
 }
 
 func (m *Match) name() string {
@@ -40,76 +58,77 @@ func (m *Match) score() string {
 }
 
 func main() {
-	// fmt.Println("Division")
 	var teams = []*Team{
-		{1, "Liverpool", 0, 0, 0, 0, 0, 0},
-		{2, "Arsenal", 0, 0, 0, 0, 0, 0},
-		{3, "Aston Villa", 0, 0, 0, 0, 0, 0},
-		{4, "Milan", 0, 0, 0, 0, 0, 0},
-		{5, "Juventus", 0, 0, 0, 0, 0, 0},
-		{6, "Barcelona", 0, 0, 0, 0, 0, 0},
-		{7, "Bayern Munchen", 0, 0, 0, 0, 0, 0},
-		{8, "Borussia Dortmund", 0, 0, 0, 0, 0, 0},
-		{9, "Manchester City", 0, 0, 0, 0, 0, 0},
-		{10, "Chelsea", 0, 0, 0, 0, 0, 0},
-		{11, "Manchester United", 0, 0, 0, 0, 0, 0},
-		{12, "Inter milan", 0, 0, 0, 0, 0, 0},
-		{13, "Atalanta", 0, 0, 0, 0, 0, 0},
-		{14, "Real Madrid", 0, 0, 0, 0, 0, 0},
-		{15, "Atletico Madrid", 0, 0, 0, 0, 0, 0},
-		{16, "Bayer Leverkusen", 0, 0, 0, 0, 0, 0},
+		{1, "Liverpool", 0, 0, 0, 0, 0, 0, -1},
+		{2, "Arsenal", 0, 0, 0, 0, 0, 0, -1},
+		{3, "Aston Villa", 0, 0, 0, 0, 0, 0, -1},
+		{4, "Milan", 0, 0, 0, 0, 0, 0, -1},
+		{5, "Juventus", 0, 0, 0, 0, 0, 0, -1},
+		{6, "Barcelona", 0, 0, 0, 0, 0, 0, -1},
+		{7, "Bayern Munchen", 0, 0, 0, 0, 0, 0, -1},
+		{8, "Borussia Dortmund", 0, 0, 0, 0, 0, 0, -1},
+		{9, "Manchester City", 0, 0, 0, 0, 0, 0, -1},
+		{10, "Chelsea", 0, 0, 0, 0, 0, 0, -1},
+		{11, "Manchester United", 0, 0, 0, 0, 0, 0, -1},
+		{12, "Inter milan", 0, 0, 0, 0, 0, 0, -1},
+		{13, "Atalanta", 0, 0, 0, 0, 0, 0, -1},
+		{14, "Real Madrid", 0, 0, 0, 0, 0, 0, -1},
+		{15, "Atletico Madrid", 0, 0, 0, 0, 0, 0, -1},
+		{16, "Bayer Leverkusen", 0, 0, 0, 0, 0, 0, -1},
 	}
 
-	fmt.Println("teams:")
-	for i, v := range teams {
-		fmt.Println(i+1, fmt.Sprintf("id: %d, name: %s", v.id, v.name))
-	}
+	/*
+		fmt.Println("teams:")
+		for i, v := range teams {
+			fmt.Println(i+1, fmt.Sprintf("id: %d, name: %s", v.id, v.name))
+		}
 
-	divisionATeams, divisionBTeams := divideTeamsIntoDivisions(teams)
+		divisionATeams, divisionBTeams := divideTeamsIntoDivisions(teams)
 
-	fmt.Println("\ndivision A teams:")
-	for i, v := range divisionATeams {
-		fmt.Println(i+1, fmt.Sprintf("id: %d, name: %s", v.id, v.name))
-	}
+		fmt.Println("\ndivision A teams:")
+		for i, v := range divisionATeams {
+			fmt.Println(i+1, fmt.Sprintf("id: %d, name: %s, division: %d", v.id, v.name, v.divisioinId))
+		}
 
-	fmt.Println("\ndivision B teams:")
-	for i, v := range divisionBTeams {
-		fmt.Println(i+1, fmt.Sprintf("id: %d, name: %s", v.id, v.name))
-	}
+		fmt.Println("\ndivision B teams:")
+		for i, v := range divisionBTeams {
+			fmt.Println(i+1, fmt.Sprintf("id: %d, name: %s, division: %d", v.id, v.name, v.divisioinId))
+		}
 
-	matchesA := generateMatches(divisionATeams, 1)
-	fmt.Println("\ndivision A matches:")
-	for i, v := range matchesA {
-		fmt.Println(i+1, v.id, v.name(), v.score())
-	}
+		matchesA := generateMatches(divisionATeams, 1)
+		fmt.Println("\ndivision A matches:")
+		for i, v := range matchesA {
+			fmt.Println(i+1, v.id, v.name(), v.score(), "matchType", v.matchType)
+		}
 
-	matchesB := generateMatches(divisionBTeams, len(matchesA)+1)
-	fmt.Println("\ndivision B matches:")
-	for i, v := range matchesB {
-		fmt.Println(i+1, v.id, v.name(), v.score())
-	}
+		matchesB := generateMatches(divisionBTeams, len(matchesA)+1)
+		fmt.Println("\ndivision B matches:")
+		for i, v := range matchesB {
+			fmt.Println(i+1, v.id, v.name(), v.score(), "matchType", v.matchType)
+		}
 
-	generateMatchesScores(matchesA)
-	fmt.Println("\ndivision A scores of matches:")
-	for i, v := range matchesA {
-		fmt.Println(i+1, v.id, v.name(), v.score())
-	}
+		generateMatchesScores(matchesA)
+		fmt.Println("\ndivision A scores of matches:")
+		for i, v := range matchesA {
+			fmt.Println(i+1, v.id, v.name(), v.score())
+		}
 
-	generateMatchesScores(matchesB)
-	fmt.Println("\ndivision B scores of matches:")
-	for i, v := range matchesB {
-		fmt.Println(i+1, v.id, v.name(), v.score())
-	}
+		generateMatchesScores(matchesB)
+		fmt.Println("\ndivision B scores of matches:")
+		for i, v := range matchesB {
+			fmt.Println(i+1, v.id, v.name(), v.score())
+		}
 
-	fmt.Println("\ndivision A team points:")
-	for i, v := range divisionATeams {
-		fmt.Println(i+1, fmt.Sprintf("id %d, name %s, W %d, D %d, L %d, F %d, A %d, GD %d, P %d", v.id, v.name, v.wins, v.draws, v.loses, v.goalsScored, v.goalsConceded, v.diff(), v.points))
-	}
+		fmt.Println("\ndivision A team points:")
+		for i, v := range divisionATeams {
+			fmt.Println(i+1, fmt.Sprintf("id %d, name %s, W %d, D %d, L %d, F %d, A %d, GD %d, P %d", v.id, v.name, v.wins, v.draws, v.loses, v.goalsScored, v.goalsConceded, v.diff(), v.points))
+		}
 
-	fmt.Println("\ndivision B team points:")
-	for i, v := range divisionBTeams {
-		fmt.Println(i+1, fmt.Sprintf("id %d, name %s, W %d, D %d, L %d, F %d, A %d, GD %d, P %d", v.id, v.name, v.wins, v.draws, v.loses, v.goalsScored, v.goalsConceded, v.diff(), v.points))
-	}
+		fmt.Println("\ndivision B team points:")
+		for i, v := range divisionBTeams {
+			fmt.Println(i+1, fmt.Sprintf("id %d, name %s, W %d, D %d, L %d, F %d, A %d, GD %d, P %d", v.id, v.name, v.wins, v.draws, v.loses, v.goalsScored, v.goalsConceded, v.diff(), v.points))
+		}
+	*/
 
 	// assuming having ranking tables by db sorting
 
@@ -130,6 +149,98 @@ func main() {
 	// 1 id 8, name Borussia Dortmund, W 2, D 0, L 5, F 16, A 18, GD -2, P 6
 	// 6 id 3, name Aston Villa, W 1, D 2, L 4, F 12, A 18, GD -6, P 5
 	// 3 id 13, name Atalanta, W 0, D 2, L 5, F 9, A 23, GD -14, P 2
+
+	divisionATop4Teams := []*Team{
+		{5, "Juventus", 5, 1, 1, 20, 14, 16, divisionAId},
+		{4, "Milan", 4, 2, 1, 20, 16, 14, divisionAId},
+		{1, "Liverpool", 4, 1, 2, 16, 13, 13, divisionAId},
+		{2, "Arsenal", 3, 1, 3, 18, 15, 10, divisionAId},
+	}
+
+	fmt.Println("\ndivision A top 4 teams:")
+	for i, v := range divisionATop4Teams {
+		fmt.Println(i+1, fmt.Sprintf("id %d, name %s, W %d, D %d, L %d, F %d, A %d, GD %d, P %d", v.id, v.name, v.wins, v.draws, v.loses, v.goalsScored, v.goalsConceded, v.diff(), v.points))
+	}
+
+	divisionBTop4Teams := []*Team{
+		{7, "Bayern Munchen", 6, 1, 0, 22, 12, 19, divisionBId},
+		{10, "Chelsea", 4, 2, 1, 22, 14, 14, divisionBId},
+		{14, "Real Madrid", 4, 1, 2, 13, 12, 13, divisionBId},
+		{15, "Atletico Madrid", 3, 2, 2, 19, 16, 11, divisionBId},
+	}
+
+	fmt.Println("\ndivision B top 4 teams:")
+	for i, v := range divisionBTop4Teams {
+		fmt.Println(i+1, fmt.Sprintf("id %d, name %s, W %d, D %d, L %d, F %d, A %d, GD %d, P %d", v.id, v.name, v.wins, v.draws, v.loses, v.goalsScored, v.goalsConceded, v.diff(), v.points))
+	}
+
+	fmt.Println("\nplay-off")
+
+	quarter4Matches := generateQuarter4Matches(divisionATop4Teams, divisionBTop4Teams)
+	fmt.Println("\nquarter 4 matches(team1 better than team2):")
+	for i, v := range quarter4Matches {
+		fmt.Println(i+1, v.id, v.name(), v.score(), "matchType", v.matchType)
+	}
+
+	generatePlayoffMatchesScores(quarter4Matches)
+
+	quarter2Teams := make([]*Team, 0)
+	fmt.Println("\nquarter 4 scores of matches:")
+	for i, v := range quarter4Matches {
+		team := getTeamById(teams, v.winnerId)
+		var winner string
+		if team == nil { // written logic just for nil
+			winner = ""
+		} else { // team always exists by id
+			winner = team.name
+			quarter2Teams = append(quarter2Teams, team)
+		}
+		fmt.Println(i+1, v.id, v.name(), v.score(), "winner", winner)
+	}
+
+	fmt.Println("\nquarter 2 teams:")
+	for i, v := range quarter2Teams {
+		fmt.Println(i+1, fmt.Sprintf("id %d, name %s", v.id, v.name))
+	}
+
+	quarter2Matches := generatePlayoffMatches(quarter2Teams, matchTypePlayoffQuarter2, 61)
+	fmt.Println("\nquarter 2 matches(random):")
+	for i, v := range quarter2Matches {
+		fmt.Println(i+1, v.id, v.name(), v.score(), "matchType", v.matchType)
+	}
+
+	generatePlayoffMatchesScores(quarter2Matches)
+
+	finalTeams := make([]*Team, 0)
+	fmt.Println("\nquarter 2 scores of matches:")
+	for i, v := range quarter2Matches {
+		team := getTeamById(teams, v.winnerId)
+		var winner string
+		if team == nil { // written logic just for nil
+			winner = ""
+		} else { // team always exists by id
+			winner = team.name
+			finalTeams = append(finalTeams, team)
+		}
+		fmt.Println(i+1, v.id, v.name(), v.score(), "winner", winner)
+	}
+
+	finalMatches := generatePlayoffMatches(finalTeams, matchTypePlayoffFinal, 63)
+	finalMatch := finalMatches[0]
+	fmt.Println("\nfinal match:")
+	fmt.Println(finalMatch.id, finalMatch.name(), finalMatch.score(), "matchType", finalMatch.matchType)
+
+	generatePlayoffMatchesScores(finalMatches)
+
+	fmt.Println("\nfinal scores of a match:")
+	team := getTeamById(teams, finalMatch.winnerId)
+	var winner string
+	if team == nil { // written logic just for nil
+		winner = ""
+	} else { // team always exists by id
+		winner = team.name
+	}
+	fmt.Println(finalMatch.id, finalMatch.name(), finalMatch.score(), "winner", winner)
 }
 
 func divideTeamsIntoDivisions(teams []*Team) ([]*Team, []*Team) {
@@ -140,11 +251,16 @@ func divideTeamsIntoDivisions(teams []*Team) ([]*Team, []*Team) {
 	})
 
 	fmt.Println("\nrandomly re-ordered teams:")
+	n := 8
 	for i, v := range teams {
+		if i < n {
+			v.divisioinId = divisionAId
+		} else {
+			v.divisioinId = divisionBId
+		}
 		fmt.Println(i+1, fmt.Sprintf("id: %d, name: %s", v.id, v.name))
 	}
 
-	n := 8
 	return teams[:n], teams[n:] // capacity has no impact, the len of first division is 8 <=== len, cap : 8,16; 8,8
 }
 
@@ -167,12 +283,13 @@ func generateMatches(teams []*Team, id int) []*Match {
 			}
 
 			matches = append(matches, &Match{
-				id, // match id
-				v,  // team 1
-				v2, // team 2
-				0,  // team 1 score
-				0,  // team 2 score
-				-1, // winner id
+				id,                // match id
+				v,                 // team 1
+				v2,                // team 2
+				0,                 // team 1 score
+				0,                 // team 2 score
+				-1,                // winner id
+				matchTypeDivision, // division match
 			})
 			m[key] = true // mark the key(team1_team2 or team2_team1 ids)
 			id++
@@ -289,4 +406,128 @@ func generateMatchesScores(matches []*Match) {
 	}
 
 	// leave sorting algorithm to db, points, then diff, then if you have same teams look at the matches between???
+}
+
+// Play-off initial schedule is made by principle - best team plays against worst team.
+// 4 vs 4 => 1 vs 4, 2 vs 3, 3 vs 2, 4 vs 1 <=== maybe it will be static logic or with some random
+func generateQuarter4Matches(teamsA []*Team, teamsB []*Team) []*Match {
+	matches := make([]*Match, 0)
+
+	id := 57
+	n := 4
+	for i := 0; i < n; i++ {
+		// 0 0 division A best team = team 1 <- better
+		// 3 4-0-1 division B worst team = team 2
+
+		// 1 1 division A 2nd = team 1 <- better
+		// 2 4-1-1 division B 3rd = team 2
+
+		// 2 2 division A 3rd = team 2
+		// 1 4-2-1 division B 2nd = team 1 <- better
+
+		// 3 3 division A worst team = team 2
+		// 0 4-3-1 division B best team = team 1 <- better
+
+		// so team1 is always better than team2
+
+		team1Index := i
+		team2Index := n - i - 1
+
+		var team1, team2 *Team
+
+		if i < 2 {
+			team1 = teamsA[team1Index]
+			team2 = teamsB[team2Index]
+		} else {
+			swap := team1Index
+			team1Index = team2Index
+			team2Index = swap
+
+			team1 = teamsB[team1Index]
+			team2 = teamsA[team2Index]
+		}
+
+		matches = append(matches, &Match{
+			id + i,                   // match id
+			team1,                    // team 1
+			team2,                    // team 2
+			0,                        // team 1 score
+			0,                        // team 2 score
+			-1,                       // winner id
+			matchTypePlayoffQuarter4, // playoff quarter 1/4 match
+		})
+	}
+
+	return matches
+}
+
+func generatePlayoffMatches(teams []*Team, matchType int, id int) []*Match {
+	matches := make([]*Match, 0)
+
+	rand.Seed(uint64(time.Now().Unix()))
+	for { // it is everytime even, so do not worry
+		if len(teams) == 0 { // all teams are picked, there is no teams left
+			break // so exit loop
+		}
+
+		randomIndex := rand.Intn(len(teams)) // pick random team
+		team1 := teams[randomIndex]
+		teams = append(teams[:randomIndex], teams[randomIndex+1:]...) // remove from teams
+
+		randomIndex = rand.Intn(len(teams)) // pick random team
+		team2 := teams[randomIndex]
+		teams = append(teams[:randomIndex], teams[randomIndex+1:]...) // remove from teams
+
+		matches = append(matches, &Match{
+			id,        // match id
+			team1,     // team 1
+			team2,     // team 2
+			0,         // team 1 score
+			0,         // team 2 score
+			-1,        // winner id
+			matchType, // playoff quarter 1/2 or final match
+		})
+		id++
+	}
+
+	return matches
+}
+
+func generatePlayoffMatchesScores(matches []*Match) {
+	// generate scores of play-off matches
+	maxGoals := 5 // assume max goals
+	rand.Seed((uint64(time.Now().UnixNano())))
+	for _, v := range matches {
+		v.firstTeamScore = rand.Intn(maxGoals)
+		v.secondTeamScore = rand.Intn(maxGoals)
+
+		if v.firstTeamScore == v.secondTeamScore { // draw is not allowed in play-off
+			if randomBool() { // first team wins by random goals ahead
+				v.firstTeamScore += rand.Intn(maxGoals) + 1 // must be bigger minimum by 1
+			} else { // or second team wins
+				v.secondTeamScore += rand.Intn(maxGoals) + 1 // must be bigger minimum by 1
+			}
+		}
+
+		if v.firstTeamScore > v.secondTeamScore { // first team wins
+			v.winnerId = v.firstTeam.id
+		} else if v.firstTeamScore < v.secondTeamScore { // second team wins
+			v.winnerId = v.secondTeam.id
+		}
+	}
+}
+
+func randomBool() bool {
+	rand.Seed(uint64(time.Now().UnixNano()))
+	return rand.Intn(2) == 1
+}
+
+func getTeamById(teams []*Team, id int) *Team {
+	for i := range teams {
+		if teams[i].id == id {
+			return teams[i]
+		}
+	}
+
+	return nil
 }
