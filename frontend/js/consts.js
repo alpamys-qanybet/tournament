@@ -1,0 +1,1 @@
+export const defaultErrorMsg = 'An error occurred, try again later';

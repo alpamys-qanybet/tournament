@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  webapp:
+    container_name: tournament-webapp
+    restart: on-failure
+    ports:
+      - 3001:8080 # probably 8080 will not be available
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/tournament
+      - SERVER_HOST=0.0.0.0
+      - GIN_MODE=release
+    depends_on:
+      - db
+    build:
+     context: .
+     dockerfile: build/Dockerfile
+    networks:
+      - tournament-net
+
+  db:
+    image: postgres:15.5
+    container_name: tournament-db
+    restart: unless-stopped
+    ports:
+      - "5433:5432" # probably 5432 will not be available
+    environment:
+      - POSTGRES_DB=tournament
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./build/sql/:/docker-entrypoint-initdb.d/
+      - v-postgres-db:/var/lib/postgresql/data
+    networks:
+      - tournament-net
+
+networks:
+  tournament-net:
+
+volumes:
+  v-postgres-db:

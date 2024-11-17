@@ -1,6 +1,6 @@
-- Develop software that can be used to manage tournament scoring - prepare and fill tournament schedule.
++ Develop software that can be used to manage tournament scoring - prepare and fill tournament schedule.
 
-- User can enter list of teams.
++ User can enter list of teams.
 
 + Together 16 teams are participating.
 
@@ -59,16 +59,17 @@ out of game, ok.
 
 winner.
 
-+logic -UI
-+- In order not to enter the tournament results by hand please use auto generation - by pressing a button generate Division A results, then Division B results, 
++logic +UI
++ In order not to enter the tournament results by hand please use auto generation - by pressing a button generate Division A results, then Division B results, 
 then Playoff results.
 
 random basket generation of division and random results generation.
 
-- No rules for UI layout.
++ No rules for UI layout.
 
 ReactJS, bootstrap, esbuild, maybe nginx and separate service or inside some view.
 
-- Results must be saved in database, that could be erased to create a new tournament.
++ Results must be saved in database, that could be erased to create a new tournament.
 
 separate page with buttons to clear database tables
+
