@@ -428,6 +428,15 @@ func PreparePlayoffSemi(ctx context.Context) (err error) {
 		return
 	}
 
+	quarterStarted, err := model.PlayoffIsStarted(ctx, dto.MatchTypePlayoffQuarter)
+	if err != nil {
+		return
+	}
+	if !quarterStarted {
+		err = errors.New("playoff_quarter_is_not_started")
+		return
+	}
+
 	prepared, err := model.PlayoffIsPrepared(ctx, dto.MatchTypePlayoffSemi, true)
 	if err != nil {
 		return
@@ -497,6 +506,24 @@ func PreparePlayoffFinal(ctx context.Context) (err error) {
 
 	if !started {
 		err = errors.New("division_is_not_started")
+		return
+	}
+
+	quarterStarted, err := model.PlayoffIsStarted(ctx, dto.MatchTypePlayoffQuarter)
+	if err != nil {
+		return
+	}
+	if !quarterStarted {
+		err = errors.New("playoff_quarter_is_not_started")
+		return
+	}
+
+	semiStarted, err := model.PlayoffIsStarted(ctx, dto.MatchTypePlayoffSemi)
+	if err != nil {
+		return
+	}
+	if !semiStarted {
+		err = errors.New("playoff_semi_is_not_started")
 		return
 	}
 

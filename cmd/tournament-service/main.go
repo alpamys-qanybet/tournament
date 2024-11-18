@@ -47,7 +47,7 @@ func main() {
 
 	app := gin.New()
 	app.Use(gin.Recovery()) // recovery middleware
-	setupRouter(app)
+	setupRouter(app, true)
 
 	serverHost := os.Getenv("SERVER_HOST")
 	server = &http.Server{
@@ -78,7 +78,7 @@ func connectDB(ctx context.Context, url string) (*pgxpool.Pool, error) {
 	return conn, nil
 }
 
-func setupRouter(r *gin.Engine) {
+func setupRouter(r *gin.Engine, withFront bool) {
 
 	// api
 	r.GET("/api", api.RootIndex)
@@ -90,13 +90,15 @@ func setupRouter(r *gin.Engine) {
 	r.GET("/api/divisions", api.GetDivisions)
 	r.POST("/api/divisions/prepare", api.PrepareDivisions)
 	r.POST("/api/divisions/start", api.StartDivisions)
-
 	r.GET("/api/playoff", api.GetPlayoffs)
-
 	r.POST("/api/playoff/prepare", api.PreparePlayoff)
 	r.POST("/api/playoff/start", api.StartPlayoff)
 
 	r.POST("/api/cleanup", api.Cleanup)
+
+	if !withFront {
+		return
+	}
 
 	// site
 	r.LoadHTMLGlob("./templates/**/*")

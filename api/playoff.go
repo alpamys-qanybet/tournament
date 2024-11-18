@@ -57,7 +57,10 @@ func PreparePlayoff(c *gin.Context) {
 
 			errMsg := err.Error()
 
-			if errMsg == "division_is_not_started" || errMsg == "playoff_semi_is_already_prepared" || errMsg == "playoff_semi_is_already_started" {
+			if errMsg == "division_is_not_started" ||
+				errMsg == "playoff_quarter_is_not_started" ||
+				errMsg == "playoff_semi_is_already_prepared" ||
+				errMsg == "playoff_semi_is_already_started" {
 				c.JSON(http.StatusUnprocessableEntity, gin.H{
 					"err": errMsg,
 				})
@@ -75,7 +78,11 @@ func PreparePlayoff(c *gin.Context) {
 
 			errMsg := err.Error()
 
-			if errMsg == "division_is_not_started" || errMsg == "playoff_final_is_already_prepared" || errMsg == "playoff_final_is_already_started" {
+			if errMsg == "division_is_not_started" ||
+				errMsg == "playoff_quarter_is_not_started" ||
+				errMsg == "playoff_semi_is_not_started" ||
+				errMsg == "playoff_final_is_already_prepared" ||
+				errMsg == "playoff_final_is_already_started" {
 				c.JSON(http.StatusUnprocessableEntity, gin.H{
 					"err": errMsg,
 				})
